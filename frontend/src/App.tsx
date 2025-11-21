@@ -1,35 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Container, Box, Typography, Button, Paper } from '@mui/material';
+import ChatIcon from '@mui/icons-material/Chat';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Container maxWidth="md">
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 3,
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            textAlign: 'center',
+            borderRadius: 2,
+          }}
+        >
+          <ChatIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+          <Typography variant="h3" component="h1" gutterBottom>
+            Chatter
+          </Typography>
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            Real-time Chat Application
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 2, mb: 3 }}>
+            Frontend is successfully set up with React, TypeScript, Vite, and Material UI!
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Button variant="contained" size="large">
+              Get Started
+            </Button>
+            <Button variant="outlined" size="large">
+              Learn More
+            </Button>
+          </Box>
+        </Paper>
+        
+        <Paper sx={{ p: 2, width: '100%' }}>
+          <Typography variant="subtitle2" color="text.secondary">
+            Tech Stack:
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            ⚛️ React 19 • 📘 TypeScript • ⚡ Vite • 🎨 Material UI • 🔄 Redux Toolkit • 🌐 Socket.IO
+          </Typography>
+        </Paper>
+      </Box>
+    </Container>
+  );
 }
 
-export default App
+export default App;
