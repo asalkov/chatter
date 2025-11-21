@@ -215,37 +215,112 @@ systemctl restart nginx
 echo "Setting up PM2 startup..."
 env PATH=$PATH:/usr/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu
 
+# Step 1: Clone the repository
+echo "Cloning Chatter repository..."
+cd /var/www/chatter
+sudo -u ubuntu git clone https://github.com/asalkov/chatter.git .
+
+# Verify clone was successful
+if [ -d "/var/www/chatter/backend" ] && [ -d "/var/www/chatter/frontend" ]; then
+    echo "Repository cloned successfully!"
+else
+    echo "Warning: Repository clone may have failed. Please check manually."
+fi
+
+# Step 2: Deploy Backend
+echo "Deploying backend..."
+cd /var/www/chatter/backend
+
+# Install backend dependencies
+echo "Installing backend dependencies..."
+sudo -u ubuntu npm install
+
+# Create production .env file
+echo "Creating backend .env file..."
+sudo -u ubuntu cat > .env << 'ENVEOF'
+# Database
+DATABASE_URL="file:./prod.db"
+
+# JWT Secrets (CHANGE THESE IN PRODUCTION!)
+JWT_SECRET="$(openssl rand -base64 32)"
+JWT_REFRESH_SECRET="$(openssl rand -base64 32)"
+
+# Server
+PORT=3000
+NODE_ENV=production
+
+# Google OAuth (Configure these manually)
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+GOOGLE_CALLBACK_URL="http://YOUR_SERVER_IP/api/auth/google/callback"
+
+# Session
+SESSION_SECRET="$(openssl rand -base64 32)"
+
+# Frontend URL
+FRONTEND_URL="http://YOUR_SERVER_IP"
+ENVEOF
+
+# Build backend
+echo "Building backend..."
+sudo -u ubuntu npm run build
+
+# Initialize database (if using Prisma)
+if [ -f "prisma/schema.prisma" ]; then
+    echo "Initializing database..."
+    sudo -u ubuntu npx prisma generate
+    sudo -u ubuntu npx prisma migrate deploy
+fi
+
+# Start backend with PM2
+echo "Starting backend with PM2..."
+sudo -u ubuntu pm2 start ecosystem.config.js
+sudo -u ubuntu pm2 save
+
+# Verify backend is running
+sleep 3
+if sudo -u ubuntu pm2 list | grep -q "chatter-backend"; then
+    echo "Backend deployed and running successfully!"
+else
+    echo "Warning: Backend may not be running. Check with 'pm2 list'"
+fi
+
 # Create a welcome message
 cat > /home/ubuntu/WELCOME.txt << 'EOF'
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   Welcome to Chatter Server!                              ║
 ║                                                           ║
-║   Server setup is complete. Next steps:                   ║
+║   Server setup is complete!                               ║
 ║                                                           ║
-║   1. Clone your repository:                               ║
-║      cd /var/www/chatter                                  ║
-║      git clone <your-repo-url> .                          ║
+║   ✓ Repository cloned from GitHub                        ║
+║   ✓ Backend deployed and running with PM2                ║
 ║                                                           ║
-║   2. Deploy backend:                                      ║
-║      cd backend                                           ║
-║      npm install                                          ║
-║      cp .env.example .env                                 ║
-║      nano .env                                            ║
-║      npm run build                                        ║
-║      pm2 start ecosystem.config.js                        ║
-║      pm2 save                                             ║
+║   Next steps:                                             ║
 ║                                                           ║
-║   3. Deploy frontend:                                     ║
-║      cd ../frontend                                       ║
+║   1. Configure backend environment:                       ║
+║      nano /var/www/chatter/backend/.env                   ║
+║      (Update GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)     ║
+║      (Update YOUR_SERVER_IP with actual IP/domain)       ║
+║      pm2 restart chatter-backend                          ║
+║                                                           ║
+║   2. Deploy frontend:                                     ║
+║      cd /var/www/chatter/frontend                         ║
 ║      npm install                                          ║
 ║      npm run build                                        ║
 ║                                                           ║
-║   4. Restart Nginx to apply changes:                      ║
+║   3. Restart Nginx to apply changes:                      ║
 ║      sudo systemctl restart nginx                         ║
 ║                                                           ║
-║   5. Set up SSL:                                          ║
+║   4. Set up SSL (optional):                               ║
 ║      sudo certbot --nginx -d yourdomain.com               ║
+║                                                           ║
+║   Useful commands:                                        ║
+║   - Check backend status: pm2 status                      ║
+║   - View backend logs: pm2 logs chatter-backend           ║
+║   - Restart backend: pm2 restart chatter-backend          ║
+║   - Check Nginx status: sudo systemctl status nginx       ║
+║   - View Nginx logs: sudo tail -f /var/log/nginx/error.log
 ║                                                           ║
 ║   Installed software:                                     ║
 ║   - Node.js: $(node --version)                            ║
