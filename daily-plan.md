@@ -26,7 +26,7 @@ This daily plan breaks down the 12-week implementation into actionable daily tas
 ### Day 3 - Frontend Setup
 - [ ] Create React project with Vite
 - [ ] Install dependencies (react-router, redux-toolkit, axios, etc.)
-- [ ] Set up TailwindCSS and shadcn/ui
+- [ ] Set up material ui
 - [ ] Create folder structure
 - [ ] Test frontend runs
 
